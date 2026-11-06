@@ -1,0 +1,11 @@
+# secrets and runtime state — never commit
+.env
+data/
+tailscale/state/
+cookies.txt
+*.cookies.txt
+
+node_modules/
+dist/
+test-results/
+playwright-report/
