@@ -39,4 +39,13 @@ export const streamRoutes = (deps: AppDeps): FastifyPluginAsync => async (app) =
 
   app.get('/api/stream/:id/audio', handle('audio'));
   app.get('/api/stream/:id/video', handle('video'));
+
+  // Warm the resolution cache so the next track starts instantly. Returns 202 at once.
+  // (Phase 6 adds the audio disk-cache download here.)
+  app.post<{ Params: { id: string } }>('/api/prefetch/:id', async (req, reply) => {
+    const { id } = req.params;
+    if (!isValidVideoId(id)) return reply.code(400).send({ error: 'invalid video id' });
+    deps.resolver.resolve(id, { type: 'audio' }).catch((err) => req.log.warn({ id, err: String(err) }, 'prefetch failed'));
+    return reply.code(202).send({ ok: true });
+  });
 };

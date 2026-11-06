@@ -12,6 +12,7 @@ import { authRoutes } from './routes/auth.js';
 import { healthRoutes } from './routes/health.js';
 import { streamRoutes } from './routes/stream.js';
 import { channelRoutes } from './routes/channel.js';
+import { libraryRoutes } from './routes/library.js';
 import { musicRoutes } from './routes/music.js';
 import { playlistRoutes } from './routes/playlist.js';
 import { searchRoutes } from './routes/search.js';
@@ -63,6 +64,7 @@ export async function buildApp(deps: AppDeps, opts: { logger?: boolean | object 
   await app.register(channelRoutes(deps));
   await app.register(playlistRoutes(deps));
   await app.register(musicRoutes(deps));
+  await app.register(libraryRoutes(deps));
 
   const root = publicDir(config);
   if (root) {

@@ -1,17 +1,18 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { BrowserRouter } from 'react-router-dom';
+import { App } from './App';
 import './index.css';
+import { initEngine } from './player/engine';
 
-function Placeholder() {
-  return (
-    <main className="flex min-h-dvh items-center justify-center bg-neutral-950 text-neutral-100">
-      <h1 className="text-2xl font-semibold text-accent">Encore</h1>
-    </main>
-  );
-}
+// The engine (and its single <audio> element) lives outside React so route changes
+// and re-renders can never unmount it.
+initEngine();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Placeholder />
+    <BrowserRouter>
+      <App />
+    </BrowserRouter>
   </StrictMode>,
 );
