@@ -23,6 +23,8 @@ const schema = z.object({
   POT_PROVIDER_URL: z.string().default('http://bgutil:4416'),
   YTDLP_COOKIES_FILE: z.preprocess(blank, z.string().optional()),
   LOG_LEVEL: z.string().default('info'),
+  // Login attempts per minute per IP.
+  LOGIN_RATE_PER_MIN: z.coerce.number().int().positive().default(5),
   // Turns off background jobs (feed poller, yt-dlp updater). Used by tests.
   DISABLE_JOBS: bool.default(false),
 });

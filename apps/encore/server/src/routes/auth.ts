@@ -9,7 +9,7 @@ export const authRoutes = (deps: AppDeps): FastifyPluginAsync => async (app) => 
   const { config } = deps;
 
   app.post('/api/auth/login', {
-    config: { rateLimit: { max: 5, timeWindow: '1 minute' } },
+    config: { rateLimit: { max: config.LOGIN_RATE_PER_MIN, timeWindow: '1 minute' } },
   }, async (req, reply) => {
     const body = LoginBody.safeParse(req.body);
     if (!body.success || !passwordMatches(body.data.password, config.APP_PASSWORD)) {

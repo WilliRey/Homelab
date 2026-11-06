@@ -19,6 +19,7 @@ export function PlayerSheet() {
   const scroller = useRef<HTMLDivElement>(null);
   const [dragY, setDragY] = useState(0);
   const startY = useRef<number | null>(null);
+  const dragRef = useRef(0); // latest distance; state can lag behind fast touch events
 
   const close = () => usePlayer.setState({ sheetOpen: false });
 
@@ -41,11 +42,13 @@ export function PlayerSheet() {
   };
   const onTouchMove = (e: React.TouchEvent) => {
     if (startY.current === null) return;
-    const dy = e.touches[0]!.clientY - startY.current;
-    setDragY(dy > 0 ? dy : 0);
+    const dy = Math.max(0, e.touches[0]!.clientY - startY.current);
+    dragRef.current = dy;
+    setDragY(dy);
   };
   const onTouchEnd = () => {
-    if (dragY > CLOSE_DISTANCE) close();
+    if (dragRef.current > CLOSE_DISTANCE) close();
+    dragRef.current = 0;
     setDragY(0);
     startY.current = null;
   };
