@@ -1,6 +1,7 @@
 import { loadConfig } from '../src/config.js';
 import { openDb } from '../src/db/index.js';
 import { buildApp, type AppDeps } from '../src/index.js';
+import { Resolver } from '../src/yt/resolver.js';
 
 export const TEST_PASSWORD = 'correct horse battery staple';
 
@@ -20,7 +21,8 @@ export function testConfig(overrides: Record<string, string> = {}) {
 export async function makeApp(extra: Partial<AppDeps> = {}) {
   const config = testConfig();
   const db = openDb(config.DATA_DIR, ':memory:');
-  const deps = { config, db, ...extra } as AppDeps;
+  const resolver = new Resolver({ fetchInfo: async () => { throw new Error('no yt-dlp in tests'); } });
+  const deps: AppDeps = { config, db, resolver, ...extra };
   const app = await buildApp(deps, { logger: false });
   return { app, deps };
 }

@@ -69,3 +69,12 @@ describe('auth routes', () => {
     expect(res.json()).toMatchObject({ ok: true, db: 'ok', potProvider: 'down' });
   });
 });
+
+describe('config', () => {
+  it('treats empty and comment-only values as unset', async () => {
+    const { testConfig } = await import('./helpers.js');
+    expect(testConfig({ YTDLP_COOKIES_FILE: '' }).YTDLP_COOKIES_FILE).toBeUndefined();
+    expect(testConfig({ YTDLP_COOKIES_FILE: '   # optional' }).YTDLP_COOKIES_FILE).toBeUndefined();
+    expect(testConfig({ YTDLP_COOKIES_FILE: '/data/cookies.txt' }).YTDLP_COOKIES_FILE).toBe('/data/cookies.txt');
+  });
+});

@@ -10,10 +10,14 @@ import { loadConfig, type Config } from './config.js';
 import { openDb, type DB } from './db/index.js';
 import { authRoutes } from './routes/auth.js';
 import { healthRoutes } from './routes/health.js';
+import { streamRoutes } from './routes/stream.js';
+import { Resolver } from './yt/resolver.js';
+import { fetchInfo } from './yt/ytdlp.js';
 
 export type AppDeps = {
   config: Config;
   db: DB;
+  resolver: Resolver;
 };
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -38,6 +42,7 @@ export async function buildApp(deps: AppDeps, opts: { logger?: boolean | object 
 
   await app.register(authRoutes(deps));
   await app.register(healthRoutes(deps));
+  await app.register(streamRoutes(deps));
 
   const root = publicDir(config);
   if (root) {
@@ -61,7 +66,12 @@ export async function buildApp(deps: AppDeps, opts: { logger?: boolean | object 
 async function main(): Promise<void> {
   const config = loadConfig();
   const db = openDb(config.DATA_DIR);
-  const app = await buildApp({ config, db });
+  const resolver = new Resolver({
+    fetchInfo: (id) =>
+      fetchInfo(id, { potProviderUrl: config.POT_PROVIDER_URL, cookiesFile: config.YTDLP_COOKIES_FILE }),
+  });
+  const app = await buildApp({ config, db, resolver });
+  resolver.setLogger(app.log);
 
   const shutdown = async (signal: string) => {
     app.log.info({ signal }, 'shutting down');

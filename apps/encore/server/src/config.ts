@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
-// Empty strings in .env mean "unset".
-const blank = (v: unknown) => (typeof v === 'string' && v.trim() === '' ? undefined : v);
+// Empty strings in .env mean "unset". `docker run --env-file` (unlike Compose) keeps
+// inline comments, so a value that is only a comment counts as unset too.
+const blank = (v: unknown) => (typeof v === 'string' && /^\s*(#.*)?$/.test(v) ? undefined : v);
 const bool = z.preprocess((v) => {
   const b = blank(v);
   if (b === undefined) return undefined;
