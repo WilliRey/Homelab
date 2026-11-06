@@ -182,7 +182,11 @@ function playlistFromLockup(n: Any): PlaylistItem | null {
   const id = n.content_id;
   const title = str(n.metadata?.title);
   if (!id || !title) return null;
-  const owner = lockupRows(n).flat()[0]?.text;
+  // Rows mix the owner with type labels ("Playlist", "Mix", "View full playlist"…).
+  const owner = lockupRows(n)
+    .flat()
+    .map((p) => p.text)
+    .find((t) => t && !/^(playlist|mix|album|podcast|course|updated .*|view full .*|\d[\d,.]* (videos?|episodes?))$/i.test(t));
   const img = n.content_image?.primary_thumbnail?.image?.[0]?.url ?? n.content_image?.image?.[0]?.url;
   return { id, title, thumbnail: https(img), count: countFrom(n.content_image), owner };
 }
