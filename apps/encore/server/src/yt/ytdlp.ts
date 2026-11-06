@@ -1,6 +1,7 @@
 // ADAPTER: the only module that spawns yt-dlp (and its JS runtime, Deno).
 // Everything else gets normalized ResolvedFormat objects.
 import { spawn } from 'node:child_process';
+import { YtError as YtdlpError } from './types.js';
 
 export const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
 export const isValidVideoId = (id: string): boolean => VIDEO_ID_RE.test(id);
@@ -127,14 +128,7 @@ export type ResolvedFormat = {
   abr?: number;
 };
 
-export type ErrorKind = 'bot-check' | 'unavailable' | 'unplayable' | 'timeout' | 'failed';
-
-export class YtdlpError extends Error {
-  constructor(readonly kind: ErrorKind, message: string) {
-    super(message);
-    this.name = 'YtdlpError';
-  }
-}
+export { YtError as YtdlpError } from './types.js';
 
 // ---------------------------------------------------------------------------
 // Format selection (pure; unit-tested against a saved fixture)

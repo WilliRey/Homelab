@@ -2,6 +2,15 @@ import { loadConfig } from '../src/config.js';
 import { openDb } from '../src/db/index.js';
 import { buildApp, type AppDeps } from '../src/index.js';
 import { Resolver } from '../src/yt/resolver.js';
+import { ShortsChecker, type HeadFn } from '../src/yt/shorts.js';
+
+const notInTests = async (): Promise<never> => {
+  throw new Error('no YouTube in tests');
+};
+export const fakeYt = (): AppDeps['yt'] => ({
+  search: notInTests, searchSongs: notInTests, suggestions: notInTests, getVideo: notInTests, getBasicInfo: notInTests,
+  getChannel: notInTests, getChannelVideos: notInTests, getPlaylist: notInTests, upNext: notInTests, resolveUrl: notInTests,
+});
 
 export const TEST_PASSWORD = 'correct horse battery staple';
 
@@ -18,11 +27,15 @@ export function testConfig(overrides: Record<string, string> = {}) {
   });
 }
 
-export async function makeApp(extra: Partial<AppDeps> = {}) {
+export async function makeApp(extra: Partial<AppDeps> = {}, opts: { head?: HeadFn } = {}) {
   const config = testConfig();
   const db = openDb(config.DATA_DIR, ':memory:');
   const resolver = new Resolver({ fetchInfo: async () => { throw new Error('no yt-dlp in tests'); } });
-  const deps: AppDeps = { config, db, resolver, ...extra };
+  const deps: AppDeps = {
+    config, db, resolver, yt: fakeYt(),
+    shorts: new ShortsChecker(db, opts.head ?? (async () => ({ status: 303, location: 'https://www.youtube.com/watch?v=x' }))),
+    ...extra,
+  };
   const app = await buildApp(deps, { logger: false });
   return { app, deps };
 }

@@ -11,14 +11,29 @@ import { openDb, type DB } from './db/index.js';
 import { authRoutes } from './routes/auth.js';
 import { healthRoutes } from './routes/health.js';
 import { streamRoutes } from './routes/stream.js';
+import { channelRoutes } from './routes/channel.js';
+import { musicRoutes } from './routes/music.js';
+import { playlistRoutes } from './routes/playlist.js';
+import { searchRoutes } from './routes/search.js';
+import { videoRoutes } from './routes/video.js';
+import * as innertube from './yt/innertube.js';
 import { Resolver } from './yt/resolver.js';
+import { ShortsChecker } from './yt/shorts.js';
 import { fetchInfo } from './yt/ytdlp.js';
 
 export type AppDeps = {
   config: Config;
   db: DB;
   resolver: Resolver;
+  /** The youtubei.js adapter (a module; tests pass a fake). */
+  yt: YtApi;
+  shorts: ShortsChecker;
 };
+
+export type YtApi = Pick<
+  typeof innertube,
+  'search' | 'searchSongs' | 'suggestions' | 'getVideo' | 'getBasicInfo' | 'getChannel' | 'getChannelVideos' | 'getPlaylist' | 'upNext' | 'resolveUrl'
+>;
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 
@@ -43,6 +58,11 @@ export async function buildApp(deps: AppDeps, opts: { logger?: boolean | object 
   await app.register(authRoutes(deps));
   await app.register(healthRoutes(deps));
   await app.register(streamRoutes(deps));
+  await app.register(searchRoutes(deps));
+  await app.register(videoRoutes(deps));
+  await app.register(channelRoutes(deps));
+  await app.register(playlistRoutes(deps));
+  await app.register(musicRoutes(deps));
 
   const root = publicDir(config);
   if (root) {
@@ -70,7 +90,7 @@ async function main(): Promise<void> {
     fetchInfo: (id) =>
       fetchInfo(id, { potProviderUrl: config.POT_PROVIDER_URL, cookiesFile: config.YTDLP_COOKIES_FILE }),
   });
-  const app = await buildApp({ config, db, resolver });
+  const app = await buildApp({ config, db, resolver, yt: innertube, shorts: new ShortsChecker(db) });
   resolver.setLogger(app.log);
 
   const shutdown = async (signal: string) => {
